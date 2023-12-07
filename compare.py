@@ -2,10 +2,14 @@ import os, glob, difflib, filecmp, argparse, sys, shutil, random
 from pathlib import Path
 from datetime import date
 
+# development dir
 source_dir = "/var/www/html/svn/web-accounting-trial"
+# destination dir
 dest_dir = "/var/www/html/svn/web-accounting-prod"
 
+# target dir we want to compare between source_dir and dest_dir
 target_dir = ["application", "assets"]
+# don't compare this folder
 exclude_dir = ["cache", "core", "helpers", "hooks", "language", "logs", "session", "third_party", "files", "font", "help", "img", "logs", "patch", "plugins", "report_schema"]
 
 exclude_paths = ["browse", "custom"]
@@ -19,7 +23,9 @@ def comparefile(source, dest, og):
     file_ext = og[1]
     f1_data = open(source, "r").readlines()
     f2_data = open(dest, "r").readlines()
+    # create html diff 
     html_diff = difflib.HtmlDiff(wrapcolumn=65).make_file(f1_data, f2_data)
+    # save html diff to dir and create symlink between source file and destination file
     if not os.path.exists(dir_today):
         os.mkdir(dir_today)
         
@@ -35,19 +41,22 @@ def comparefile(source, dest, og):
     
 
 def main():
+    # delete dir before compare
     if os.path.exists(dir_today):
         shutil.rmtree(dir_today)
         
     for main_dir in target_dir:
+        # get all dir in target directory
         list_all_file = [d for f in os.scandir(source_dir+"/"+main_dir) if f.is_dir() and not f.name in exclude_dir for d in glob.glob(source_dir + '/'+main_dir+'/'+f.name+'/**/**/**', recursive = True) if os.path.isfile(d)]
         for source_path in set(list_all_file):
             dest_path = source_path.replace(source_dir, dest_dir)
             get_exclude_path = os.path.split(os.path.dirname(source_path))
             if(get_exclude_path[1] not in exclude_paths):
                 if os.path.exists(dest_path):
+                    # compare between 2 source
                     res = filecmp.cmp(source_path, dest_path)
                     if res == False:
-                        head, tail = os.path.split(source_path)
+                        tail = os.path.split(source_path)
                         comparefile(source_path, dest_path, tail)
                 else:
                     print("File not found in local production: "+dest_path)
