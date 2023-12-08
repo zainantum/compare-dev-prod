@@ -56,7 +56,7 @@ def main():
                     # compare between 2 source
                     res = filecmp.cmp(source_path, dest_path)
                     if res == False:
-                        tail = os.path.split(source_path)
+                        head, tail = os.path.split(source_path)
                         comparefile(source_path, dest_path, tail)
                 else:
                     print("File not found in local production: "+dest_path)
