@@ -14,6 +14,9 @@ exclude_dir = ["cache", "core", "helpers", "hooks", "language", "logs", "session
 
 exclude_paths = ["browse", "custom"]
 
+# specified file
+sp_file = ["Syspage.php", "routes.php", "jmlib.js"]
+
 global dir_today
 dir_today = "diff/"+str(date.today())
 
@@ -49,6 +52,11 @@ def main():
         # get all dir in target directory
         list_all_file = [d for f in os.scandir(source_dir+"/"+main_dir) if f.is_dir() and not f.name in exclude_dir for d in glob.glob(source_dir + '/'+main_dir+'/'+f.name+'/**/**/**', recursive = True) if os.path.isfile(d)]
         for source_path in set(list_all_file):
+            head, tail = os.path.split(source_path)
+            if len(sp_file) > 0:
+                if not tail in sp_file:
+                    continue
+                
             dest_path = source_path.replace(source_dir, dest_dir)
             get_exclude_path = os.path.split(os.path.dirname(source_path))
             if(get_exclude_path[1] not in exclude_paths):
@@ -56,7 +64,6 @@ def main():
                     # compare between 2 source
                     res = filecmp.cmp(source_path, dest_path)
                     if res == False:
-                        head, tail = os.path.split(source_path)
                         comparefile(source_path, dest_path, tail)
                 else:
                     print("File not found in local production: "+dest_path)
